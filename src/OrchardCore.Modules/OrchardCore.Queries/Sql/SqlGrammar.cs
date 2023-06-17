@@ -103,6 +103,7 @@ namespace OrchardCore.Queries.Sql
             var subQuery = new NonTerminal("subQuery");
             var tableAliasItemOrSubQuery = new NonTerminal("tableAliasItemOrSubQuery");
             var tableAliasOrSubQueryList = new NonTerminal("tableAliasOrSubQueryList");
+            var tableOrFunCall = new NonTerminal("tableOrFunCall");
 
             //BNF Rules
             this.Root = statementList;
@@ -134,7 +135,8 @@ namespace OrchardCore.Queries.Sql
             idlist.Rule = MakePlusRule(idlist, comma, columnSource);
 
             tableAliasList.Rule = MakePlusRule(tableAliasList, comma, tableAliasItem);
-            tableAliasItem.Rule = Id + tableAliasOpt;
+            tableOrFunCall.Rule = Id | funCall;
+            tableAliasItem.Rule = tableOrFunCall + tableAliasOpt;
 
             subQuery.Rule = "(" + unionStatementList + ")" + AS + TableAlias;
             tableAliasOrSubQueryList.Rule = MakePlusRule(tableAliasOrSubQueryList, comma, tableAliasItemOrSubQuery);
@@ -212,7 +214,7 @@ namespace OrchardCore.Queries.Sql
             // Transient non-terminals cannot have more than one non-punctuation child nodes.
             // Instead, we set flag InheritPrecedence on binOp , so that it inherits precedence value from it's children, and this precedence is used
             // in conflict resolution when binOp node is sitting on the stack
-            base.MarkTransient(tableAliasItemOrSubQuery, term, asOpt, tableAliasOpt, columnAliasOpt, statementLine, expression, unOp, tuple);
+            base.MarkTransient(tableAliasItemOrSubQuery, term, asOpt, tableAliasOpt, columnAliasOpt, statementLine, expression, unOp, tuple, tableOrFunCall);
             binOp.SetFlag(TermFlags.InheritPrecedence);
         }
     }

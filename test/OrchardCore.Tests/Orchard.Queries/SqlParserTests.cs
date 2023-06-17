@@ -245,5 +245,17 @@ namespace OrchardCore.Tests.OrchardCore.Queries
             Assert.True(result);
             Assert.Equal(expectedSql, FormatSql(rawQuery));
         }
+
+        [Theory]
+        [InlineData("select * from someFunction()", "SELECT * FROM someFunction();")]
+        [InlineData("select * from someFunction() as a", "SELECT * FROM someFunction() AS a;")]
+        [InlineData("select * from someFunction(1, 'abc')", "SELECT * FROM someFunction(1, 'abc');")]
+        [InlineData("select * from someFunction(@param) as a", "SELECT * FROM someFunction(@param) AS a;")]
+        public void ShouldParseFunctionReturnsTable(string sql, string expectedSql)
+        {
+            var result = SqlParser.TryParse(sql, _schema, _defaultDialect, _defaultTablePrefix, null, out var rawQuery, out var messages);
+            Assert.True(result);
+            Assert.Equal(expectedSql, FormatSql(rawQuery));
+        }
     }
 }
