@@ -605,7 +605,16 @@ namespace OrchardCore.Queries.Sql
 
                 if (aliasItemOrSubQuery.Term.Name == "tableAliasItem")
                 {
-                    EvaluateId(aliasItemOrSubQuery.ChildNodes[0]);
+                    var tableOrFunCall = aliasItemOrSubQuery.ChildNodes[0];
+
+                    if (tableOrFunCall.Term.Name == "funCall")
+                    {
+                        EvaluateFunCall(tableOrFunCall);
+                    }
+                    else
+                    {
+                        EvaluateId(tableOrFunCall);
+                    }
 
                     if (aliasItemOrSubQuery.ChildNodes.Count > 1)
                     {
