@@ -71,7 +71,7 @@ namespace OrchardCore.Contents.Services
                             return (true, model.ContentsStatus.ToString());
                         }
 
-                        return (false, String.Empty);
+                        return (false, string.Empty);
                     })
                     .AlwaysRun()
                 )
@@ -83,23 +83,23 @@ namespace OrchardCore.Contents.Services
                             switch (contentsOrder)
                             {
                                 case ContentsOrder.Modified:
-                                    query.With<ContentItemIndex>().OrderByDescending(x => x.ModifiedUtc);
+                                    query.With<ContentItemIndex>().OrderByDescending(cr => cr.ModifiedUtc).ThenBy(cr => cr.Id);
                                     break;
                                 case ContentsOrder.Published:
-                                    query.With<ContentItemIndex>().OrderByDescending(cr => cr.PublishedUtc);
+                                    query.With<ContentItemIndex>().OrderByDescending(cr => cr.PublishedUtc).ThenBy(cr => cr.Id);
                                     break;
                                 case ContentsOrder.Created:
-                                    query.With<ContentItemIndex>().OrderByDescending(cr => cr.CreatedUtc);
+                                    query.With<ContentItemIndex>().OrderByDescending(cr => cr.CreatedUtc).ThenBy(cr => cr.Id);
                                     break;
                                 case ContentsOrder.Title:
-                                    query.With<ContentItemIndex>().OrderBy(cr => cr.DisplayText);
+                                    query.With<ContentItemIndex>().OrderBy(cr => cr.DisplayText).ThenBy(cr => cr.Id);
                                     break;
                             };
                         }
                         else
                         {
                             // Modified is a default value and applied when there is no filter.
-                            query.With<ContentItemIndex>().OrderByDescending(x => x.ModifiedUtc);
+                            query.With<ContentItemIndex>().OrderByDescending(cr => cr.ModifiedUtc).ThenBy(cr => cr.Id);
                         }
 
                         return query;
@@ -118,7 +118,7 @@ namespace OrchardCore.Contents.Services
                             return (true, model.OrderBy.ToString());
                         }
 
-                        return (false, String.Empty);
+                        return (false, string.Empty);
                     })
                     .AlwaysRun()
                 )
@@ -133,7 +133,7 @@ namespace OrchardCore.Contents.Services
                         var userNameIdentifier = user?.FindFirstValue(ClaimTypes.NameIdentifier);
 
                         // Filter for a specific type.
-                        if (!String.IsNullOrEmpty(contentType))
+                        if (!string.IsNullOrEmpty(contentType))
                         {
                             var contentTypeDefinition = contentDefinitionManager.GetTypeDefinition(contentType);
                             if (contentTypeDefinition != null)
@@ -149,6 +149,7 @@ namespace OrchardCore.Contents.Services
 
                                 return query.With<ContentItemIndex>(x => x.ContentType == contentType && x.Owner == userNameIdentifier);
                             }
+
                             // At this point, the given contentType is invalid. Ignore it.
                         }
 
@@ -183,19 +184,19 @@ namespace OrchardCore.Contents.Services
                     })
                     .MapTo<ContentOptionsViewModel>((val, model) =>
                     {
-                        if (!String.IsNullOrEmpty(val))
+                        if (!string.IsNullOrEmpty(val))
                         {
                             model.SelectedContentType = val;
                         }
                     })
                     .MapFrom<ContentOptionsViewModel>((model) =>
                     {
-                        if (!String.IsNullOrEmpty(model.SelectedContentType))
+                        if (!string.IsNullOrEmpty(model.SelectedContentType))
                         {
                             return (true, model.SelectedContentType);
                         }
 
-                        return (false, String.Empty);
+                        return (false, string.Empty);
                     })
                     .AlwaysRun()
                 )
@@ -208,12 +209,12 @@ namespace OrchardCore.Contents.Services
                         var contentDefinitionManager = context.ServiceProvider.GetRequiredService<IContentDefinitionManager>();
 
                         // Filter for a specific stereotype.
-                        if (!String.IsNullOrEmpty(stereotype))
+                        if (!string.IsNullOrEmpty(stereotype))
                         {
                             var contentTypeDefinitionNames = contentDefinitionManager.ListTypeDefinitions()
-                            .Where(definition => definition.StereotypeEquals(stereotype, StringComparison.OrdinalIgnoreCase))
-                            .Select(definition => definition.Name)
-                            .ToList();
+                                .Where(definition => definition.StereotypeEquals(stereotype, StringComparison.OrdinalIgnoreCase))
+                                .Select(definition => definition.Name)
+                                .ToList();
 
                             // We display a specific type even if it's not listable so that admin pages
                             // can reuse the content list page for specific types.
@@ -247,24 +248,8 @@ namespace OrchardCore.Contents.Services
 
                         return query;
                     })
-                    .MapTo<ContentOptionsViewModel>((val, model) =>
-                    {
-                        if (!String.IsNullOrEmpty(val))
-                        {
-                            model.SelectedContentType = val;
-                        }
-                    })
-                    .MapFrom<ContentOptionsViewModel>((model) =>
-                    {
-                        if (!String.IsNullOrEmpty(model.SelectedContentType))
-                        {
-                            return (true, model.SelectedContentType);
-                        }
-
-                        return (false, String.Empty);
-                    })
                 )
-                .WithDefaultTerm("text", builder => builder
+                .WithDefaultTerm(ContentsAdminListFilterOptions.DefaultTermName, builder => builder
                     .ManyCondition(
                         (val, query) => query.With<ContentItemIndex>(x => x.DisplayText.Contains(val)),
                         (val, query) => query.With<ContentItemIndex>(x => x.DisplayText.NotContains(val))
