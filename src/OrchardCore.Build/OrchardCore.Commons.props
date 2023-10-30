@@ -25,6 +25,9 @@
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageIcon>icon.png</PackageIcon>
+    
+    <!-- This is used to cache NuGet packages -->
+    <RestorePackagesWithLockFile Condition="'$(RestorePackagesWithLockFile)'!='true'">true</RestorePackagesWithLockFile>
 
     <!--This is used to generate symbol package for Source Link-->
     <IncludeSymbols>true</IncludeSymbols>
